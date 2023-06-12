@@ -191,15 +191,13 @@ odoo.define("l10n_es_ticketbai_pos.tbai_models", function (require) {
             var company = this.pos.company;
             var vatLinesJson = order_json.taxLines;
             var self = this;
-            if (vatLinesJson && vatLinesJson.length > 0) {
+            if (company.tbai_vat_regime_simplified) {
+                self.vat_regime_key = "52"; // Simplified
+            } else if (vatLinesJson && vatLinesJson.length > 0) {
                 vatLinesJson.forEach(function (vatLineJson) {
                     var vatLine = vatLineJson[2];
                     if (vatLine.tax.tbai_vat_regime_simplified) {
-                        if (company.tbai_vat_regime_simplified) {
-                            self.vat_regime_key = "52";  // Simplified
-                        } else {
-                            self.vat_regime_key = "51";  // Surcharge
-                        }
+                        self.vat_regime_key = "51"; // Surcharge
                     }
                 });
             }
@@ -329,11 +327,15 @@ odoo.define("l10n_es_ticketbai_pos.tbai_models", function (require) {
         get_tbai_vat_lines_from_json: function (order_json) {
             var vatLines = [];
             var vatLinesJson = order_json.taxLines;
+            var company = this.pos.company;
             var self = this;
+            var simplified = "N";
+            if (company.tbai_vat_regime_simplified) {
+                simplified = "S";
+            }
             if (vatLinesJson && vatLinesJson.length > 0) {
                 vatLinesJson.forEach(function (vatLineJson) {
                     var vatLine = vatLineJson[2];
-                    var simplified = "N";
                     if (vatLine.tax.tbai_vat_regime_simplified) {
                         simplified = "S";
                     }
@@ -356,7 +358,7 @@ odoo.define("l10n_es_ticketbai_pos.tbai_models", function (require) {
                     ),
                     rate: fline.tbai_vat_amount,
                     amount: 0,
-                    simplified: "N",
+                    simplified: simplified,
                 });
             }
             return vatLines;

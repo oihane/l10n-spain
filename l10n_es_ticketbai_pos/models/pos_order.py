@@ -122,8 +122,15 @@ class PosOrder(models.Model):
         is_araba_tax_agency = tax_agency == araba_tax_agency
         taxes = {}
         lines = []
+        surcharge_or_simplified = "N"
+        if (self.tbai_vat_regime_key == self.env.ref(
+                "l10n_es_ticketbai.tbai_vat_regime_52")):
+            surcharge_or_simplified = "S"
         for line in self.lines:
             for tax in line.tax_ids_after_fiscal_position:
+                if (self.tbai_vat_regime_key == self.env.ref(
+                        "l10n_es_ticketbai.tbai_vat_regime_51") and tax.tbai_vat_regime_simplified):
+                    surcharge_or_simplified = "S"
                 taxes.setdefault(
                     tax.id,
                     {
@@ -133,6 +140,7 @@ class PosOrder(models.Model):
                         "base": 0.0,
                         "amount": tax.amount,
                         "amount_total": 0.0,
+                        "surcharge_or_simplified_regime": surcharge_or_simplified,
                     },
                 )
                 price = line.price_unit * (1 - (line.discount or 0.0) / 100.0)
